@@ -2,6 +2,8 @@ package com.gb.challenge.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -41,6 +43,7 @@ public class Book {
     private Long isbn;
 
     @Column(name = "Language", unique = false, nullable = false, length = 2)
+    @Enumerated(EnumType.STRING)
     private Language language;
 
 }
