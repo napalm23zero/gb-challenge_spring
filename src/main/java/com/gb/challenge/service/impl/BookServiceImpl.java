@@ -8,6 +8,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
@@ -121,10 +123,23 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
                         book.setTitle(inputLine.replace("<h2>", "").replace("</h2>", "").trim());
                     }
                 }
-                if (book.getLanguage() != null && !inputLine.contains("img") && !inputLine.contains("book-cover-image")) {
+                if (book.getLanguage() != null && !inputLine.contains("img")
+                        && !inputLine.contains("book-cover-image")) {
                     desc = desc + inputLine.replace("<p>", "").replace("</p>", "").trim().replaceAll("<[^>]*>", "");
                     book.setDescription(desc + "");
-                    // if(inputLine.contains("<a")){}
+                    if (inputLine.contains("<a")) {
+                        System.out.println(inputLine);
+                        Pattern pattern = Pattern.compile(
+                                "(?i)^(?:(?:https?|ftp)://)(?:\\S+(?::\\S*)?@)?(?:(?!(?:10|127)(?:\\.\\d{1,3}){3})(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,}))\\.?)(?::\\d{2,5})?(?:[/?#]\\S*)?$");
+                        Matcher matcher = pattern.matcher(inputLine);
+                        System.out.println(matcher);
+                        System.out.println("End Test");
+                        if (matcher.find()) {
+                            System.out.println("Achei o link PORRA!");
+
+
+                        }
+                    }
 
                 }
                 if (inputLine.contains("book-lang")) {
@@ -145,9 +160,8 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
     }
 
     public Boolean checkBook(BookDTO book) {
-        if (book.getDescription() != null &&
-        // book.getIsbn() != null &&
-                book.getLanguage() != null && book.getTitle() != null) {
+        if (book.getDescription() != null && book.getIsbn() != null && book.getLanguage() != null
+                && book.getTitle() != null) {
             return true;
         } else {
             return false;
