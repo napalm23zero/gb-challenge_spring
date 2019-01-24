@@ -5,7 +5,7 @@ spring:
   datasource:
     initialization-mode: always
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://postgres:5432/gb_challenge
+    url: jdbc:postgresql://localhost:5432/gb_challenge
     username: postgres
     password: 123456
 # JPA properties

@@ -1,6 +1,13 @@
 package com.gb.challenge.service.impl;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 import javax.transaction.Transactional;
 
@@ -89,6 +96,63 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
                 .withStringMatcher(ExampleMatcher.StringMatcher.EXACT).withIgnorePaths("id");
         Example<Book> query = Example.of(mapper.map(book, Book.class), matcher);
         return (mapper.map(repository.findAll(query, pagination), pageableTypeBookDTO));
+    }
+
+    @Override
+    public List<BookDTO> listKotlinPage() {
+        BookDTO book = new BookDTO();
+        List<BookDTO> listBook = new ArrayList<>();
+        try {
+            URL kotlin = new URL("https://kotlinlang.org/docs/books.html");
+            BufferedReader in = new BufferedReader(new InputStreamReader(kotlin.openStream()));
+            String desc = "";
+            String inputLine;
+
+            while ((inputLine = in.readLine()) != null) {
+                if (inputLine.contains("<h2")) {
+                    if (checkBook(book) == true) {
+                        listBook.add(book);
+                        book = new BookDTO();
+                        desc = "";
+                    }
+                    if (inputLine.contains("<h2 style=\"clear: left\">")) {
+                        book.setTitle(inputLine.replace("<h2 style=\"clear: left\">", "").replace("</h2>", "").trim());
+                    } else {
+                        book.setTitle(inputLine.replace("<h2>", "").replace("</h2>", "").trim());
+                    }
+                }
+                if (book.getLanguage() != null && !inputLine.contains("img") && !inputLine.contains("book-cover-image")) {
+                    desc = desc + inputLine.replace("<p>", "").replace("</p>", "").trim().replaceAll("<[^>]*>", "");
+                    book.setDescription(desc + "");
+                    // if(inputLine.contains("<a")){}
+
+                }
+                if (inputLine.contains("book-lang")) {
+                    book.setStringLanguage(inputLine.replace("<div class=\"book-lang\">", "").replace("</div>", "")
+                            .trim().toUpperCase(Locale.ENGLISH));
+                }
+
+            }
+            in.close();
+        } catch (
+
+        IOException e) {
+            e.printStackTrace();
+        }
+
+        return listBook;
+
+    }
+
+    public Boolean checkBook(BookDTO book) {
+        if (book.getDescription() != null &&
+        // book.getIsbn() != null &&
+                book.getLanguage() != null && book.getTitle() != null) {
+            return true;
+        } else {
+            return false;
+        }
+
     }
 
 }

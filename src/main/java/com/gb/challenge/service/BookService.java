@@ -1,5 +1,7 @@
 package com.gb.challenge.service;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import com.gb.challenge.dto.BookDTO;
@@ -23,5 +25,7 @@ public interface BookService {
             String orderBy);
 
     public Page<BookDTO> find(BookDTO book, Integer pageNumber, Integer pageSize, Direction direction, String orderBy);
+
+	public List<BookDTO> listKotlinPage();
 
 }

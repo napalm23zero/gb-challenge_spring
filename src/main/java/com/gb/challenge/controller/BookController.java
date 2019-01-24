@@ -1,5 +1,7 @@
 package com.gb.challenge.controller;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import com.gb.challenge.dto.BookDTO;
@@ -82,6 +84,12 @@ public class BookController {
             @RequestParam(value = "Direction", defaultValue = "ASC", required = true) Direction direction,
             @RequestParam(value = "Ordered By", defaultValue = "id", required = true) String orderBy) {
         return (service.find(Book, pageNumber, pageSize, direction, orderBy));
+    }
+
+    @ApiOperation(value = "list kotlin")
+    @RequestMapping(value = "/list/kotlin", method = RequestMethod.GET)
+    public List<BookDTO> listKotlinPage() {
+        return (service.listKotlinPage());
     }
 
 }

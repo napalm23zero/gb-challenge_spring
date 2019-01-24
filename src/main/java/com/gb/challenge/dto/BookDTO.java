@@ -31,4 +31,12 @@ public class BookDTO {
     @Enumerated(EnumType.STRING)
     private Language language;
 
+    public void setStringLanguage(String language) {
+        for (Language l : Language.values()) {
+            if (l.toString().equals(language)) {
+                setLanguage(l);
+            }
+        }
+    }
+
 }
