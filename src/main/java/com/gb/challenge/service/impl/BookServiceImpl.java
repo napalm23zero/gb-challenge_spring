@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -132,21 +133,36 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
                         Matcher matcher = pattern.matcher(inputLine);
                         if (matcher.find()) {
                             URL isbnExplorer = new URL(matcher.group().replace("href=", "").replace("\"", ""));
-                            BufferedReader isbnIn = new BufferedReader(
-                                    new InputStreamReader(isbnExplorer.openStream()));
-                            String isbnInputLine;
-                            while ((isbnInputLine = isbnIn.readLine()) != null && book.getIsbn() == null) {
-                                Pattern patternIsbn = Pattern.compile(
-                                        "^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$");
-                                Matcher matcherIsbn = patternIsbn.matcher(isbnInputLine);
-                                if (matcherIsbn.find()) {
-                                    book.setIsbn(Long.parseLong(matcherIsbn.group(2)));
+                            HttpURLConnection connection = (HttpURLConnection) isbnExplorer.openConnection();
+                            connection.setRequestMethod("GET");
+                            connection.connect();
+                            if (connection.getResponseCode() == 200) {
+                                BufferedReader isbnIn = new BufferedReader(
+                                        new InputStreamReader(isbnExplorer.openStream()));
+                                String isbnInputLine;
+                                Boolean isbnFound = false;
+                                while ((isbnInputLine = isbnIn.readLine()) != null && book.getIsbn() == null) {
+                                    if (isbnInputLine.toLowerCase().contains("isbn")
+                                            || isbnInputLine.toLowerCase().contains("isbn-13")
+                                            || isbnInputLine.toLowerCase().contains("isbn-10")) {
+                                        isbnFound = true;
+                                    }
+                                    if (isbnFound) {
+                                        Pattern patternIsbn = Pattern.compile("978[-0-9]{10,13}");
+                                        Matcher matcherIsbn = patternIsbn.matcher(isbnInputLine);
+                                        if (matcherIsbn.find()) {
+                                            System.out.println("ACHOUUUUUUUUUU");
+                                            book.setIsbn(matcherIsbn.group());
+                                            break;
+                                        }
+                                    }
                                 }
+
+                                if (book.getIsbn() == null) {
+                                    book.setIsbn("Unavaiable");
+                                }
+                                isbnIn.close();
                             }
-                            if (book.getIsbn() == null) {
-                                book.setIsbn(0L);
-                            }
-                            isbnIn.close();
                         }
                     }
 

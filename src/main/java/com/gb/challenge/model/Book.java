@@ -40,7 +40,7 @@ public class Book {
     private String description;
 
     @Column(name = "isbn", unique = true, nullable = false)
-    private Long isbn;
+    private String isbn;
 
     @Column(name = "Language", unique = false, nullable = false, length = 2)
     @Enumerated(EnumType.STRING)

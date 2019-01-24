@@ -26,7 +26,7 @@ public class BookDTO {
 
     private String description;
 
-    private Long isbn;
+    private String isbn;
 
     @Enumerated(EnumType.STRING)
     private Language language;
