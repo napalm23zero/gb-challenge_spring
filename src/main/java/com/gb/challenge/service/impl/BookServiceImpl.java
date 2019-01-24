@@ -128,16 +128,25 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
                     desc = desc + inputLine.replace("<p>", "").replace("</p>", "").trim().replaceAll("<[^>]*>", "");
                     book.setDescription(desc + "");
                     if (inputLine.contains("<a")) {
-                        System.out.println(inputLine);
-                        Pattern pattern = Pattern.compile(
-                                "(?i)^(?:(?:https?|ftp)://)(?:\\S+(?::\\S*)?@)?(?:(?!(?:10|127)(?:\\.\\d{1,3}){3})(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,}))\\.?)(?::\\d{2,5})?(?:[/?#]\\S*)?$");
+                        Pattern pattern = Pattern.compile("href=['\"]([^'\"]+?)['\"]");
                         Matcher matcher = pattern.matcher(inputLine);
-                        System.out.println(matcher);
-                        System.out.println("End Test");
                         if (matcher.find()) {
-                            System.out.println("Achei o link PORRA!");
-
-
+                            URL isbnExplorer = new URL(matcher.group().replace("href=", "").replace("\"", ""));
+                            BufferedReader isbnIn = new BufferedReader(
+                                    new InputStreamReader(isbnExplorer.openStream()));
+                            String isbnInputLine;
+                            while ((isbnInputLine = isbnIn.readLine()) != null && book.getIsbn() == null) {
+                                Pattern patternIsbn = Pattern.compile(
+                                        "^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$");
+                                Matcher matcherIsbn = patternIsbn.matcher(isbnInputLine);
+                                if (matcherIsbn.find()) {
+                                    book.setIsbn(Long.parseLong(matcherIsbn.group(2)));
+                                }
+                            }
+                            if (book.getIsbn() == null) {
+                                book.setIsbn(0L);
+                            }
+                            isbnIn.close();
                         }
                     }
 
