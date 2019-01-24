@@ -1,5 +1,16 @@
 version: "3.4"
 services:
+  maven:
+    image: maven:3-jdk-8
+    container_name: gb-challeng_spring
+    ports: 
+      - 8080:8082
+    volumes:
+      - "./:/app"
+    working_dir: /app
+    command: mvn spring-boot:run
+    depends_on: 
+      - postgres
   postgres:
     image: postgres:11
     container_name: gb_postgres
