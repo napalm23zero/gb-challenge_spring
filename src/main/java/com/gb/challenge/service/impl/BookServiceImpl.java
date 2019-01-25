@@ -33,6 +33,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+
 @Service("bookService")
 @Transactional
 public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements BookService {
@@ -128,28 +132,37 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
                 if (inputLine.contains("<a")) {
                     Matcher matcher = createPatternMatcher(Constants.hrefRegex, inputLine);
                     if (matcher.find()) {
-                        URL bookURL = new URL(matcher.group().replace("href=", "").replace("\"", ""));
-                        if (checkSite(bookURL)) {
-                            BufferedReader bookBuffer = new BufferedReader(new InputStreamReader(bookURL.openStream()));
-                            String isbnInputLine;
-                            Boolean isbnFound = false;
-                            while ((isbnInputLine = bookBuffer.readLine()) != null && temBook.getIsbn() == null) {
-                                if (isbnInputLine.toLowerCase().contains("isbn"))
-                                    isbnFound = true;
-                                if (isbnFound) {
-                                    Matcher matcherIsbn = createPatternMatcher(Constants.isbnRegex, isbnInputLine);
-                                    if (matcherIsbn.find()) {
-                                        temBook.setIsbn(matcherIsbn.group().replace("-", ""));
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (temBook.getIsbn() == null) {
-                                temBook.setIsbn("Unavailable");
-                            }
-                            bookBuffer.close();
+                        // String isdb = accessSiteAndReturnCode(matcher.group());
+                        if (matcher.group() != null) {
+                            Observable<String> obs = Observable.just(accessSiteAndReturnCode(matcher.group()));
+                            obs.subscribe((s) -> {
+                                System.out.println("__________");
+                                System.out.println(s);
+                                System.out.println("||||||||||");
+                            });
                         }
+
+                        // Observable.just("Hello Worldo").subscribe(new Observer<String>() {
+                        // @Override
+                        // public void onNext(String s) {
+                        // System.out.println(s);
+                        // }
+
+                        // @Override
+                        // public void onError(Throwable e) {
+                        // System.out.println("Ups: " + e.getMessage());
+                        // }
+
+                        // @Override
+                        // public void onComplete() {
+                        // System.out.println("Terminado");
+                        // }
+
+                        // @Override
+                        // public void onSubscribe(Disposable d) {
+
+                        // }
+                        // });
                     }
                 }
 
@@ -209,7 +222,29 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
     public Matcher createPatternMatcher(String regex, String data) {
         Pattern pattern = Pattern.compile(regex);
         return pattern.matcher(data);
-
     }
 
+    public String accessSiteAndReturnCode(String site) throws IOException {
+        URL bookURL = new URL(site.replace("href=", "").replace("\"", ""));
+        if (checkSite(bookURL)) {
+            BufferedReader bookBuffer = new BufferedReader(new InputStreamReader(bookURL.openStream()));
+            String isbnInputLine;
+            Boolean isbnFound = false;
+            while ((isbnInputLine = bookBuffer.readLine()) != null) {
+                if (isbnInputLine.toLowerCase().contains("isbn"))
+                    isbnFound = true;
+                if (isbnFound) {
+                    Matcher matcherIsbn = createPatternMatcher(Constants.isbnRegex, isbnInputLine);
+                    if (matcherIsbn.find()) {
+                        bookBuffer.close();
+                        return matcherIsbn.group().replace("-", "");
+                    }
+                }
+            }
+            bookBuffer.close();
+            return "Unavailable";
+
+        }
+        return null;
+    }
 }
