@@ -148,18 +148,17 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
                                         isbnFound = true;
                                     }
                                     if (isbnFound) {
-                                        Pattern patternIsbn = Pattern.compile("978[-0-9]{10,13}");
+                                        Pattern patternIsbn = Pattern.compile("978[0-9]{10,13}");
                                         Matcher matcherIsbn = patternIsbn.matcher(isbnInputLine);
                                         if (matcherIsbn.find()) {
-                                            System.out.println("ACHOUUUUUUUUUU");
-                                            book.setIsbn(matcherIsbn.group());
+                                            book.setIsbn(matcherIsbn.group().replace("-", ""));
                                             break;
                                         }
                                     }
                                 }
 
                                 if (book.getIsbn() == null) {
-                                    book.setIsbn("Unavaiable");
+                                    book.setIsbn("Unavailable");
                                 }
                                 isbnIn.close();
                             }
