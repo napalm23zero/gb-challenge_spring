@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,7 @@ import com.gb.challenge.dto.BookDTO;
 import com.gb.challenge.model.Book;
 import com.gb.challenge.repository.BookRepository;
 import com.gb.challenge.service.BookService;
+import com.gb.challenge.utils.Constants;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -102,82 +104,62 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
     }
 
     @Override
-    public List<BookDTO> listKotlinPage() {
-        BookDTO book = new BookDTO();
+    public List<BookDTO> listKotlinPage() throws MalformedURLException, IOException {
+        BookDTO temBook = new BookDTO();
         List<BookDTO> listBook = new ArrayList<>();
-        try {
-            URL kotlin = new URL("https://kotlinlang.org/docs/books.html");
-            BufferedReader in = new BufferedReader(new InputStreamReader(kotlin.openStream()));
-            String desc = "";
-            String inputLine;
+        URL kotlinURL = new URL("https://kotlinlang.org/docs/books.html");
+        BufferedReader kotlinBuffer = new BufferedReader(new InputStreamReader(kotlinURL.openStream()));
+        String desc = "";
+        String inputLine;
 
-            while ((inputLine = in.readLine()) != null) {
-                if (inputLine.contains("<h2")) {
-                    if (checkBook(book) == true) {
-                        listBook.add(book);
-                        book = new BookDTO();
-                        desc = "";
-                    }
-                    if (inputLine.contains("<h2 style=\"clear: left\">")) {
-                        book.setTitle(inputLine.replace("<h2 style=\"clear: left\">", "").replace("</h2>", "").trim());
-                    } else {
-                        book.setTitle(inputLine.replace("<h2>", "").replace("</h2>", "").trim());
-                    }
+        while ((inputLine = kotlinBuffer.readLine()) != null) {
+            if (inputLine.contains("<h2")) {
+                if (checkBook(temBook) == true) { // Reset TempObject
+                    listBook.add(temBook);
+                    temBook = new BookDTO();
+                    desc = "";
                 }
-                if (book.getLanguage() != null && !inputLine.contains("img")
-                        && !inputLine.contains("book-cover-image")) {
-                    desc = desc + inputLine.replace("<p>", "").replace("</p>", "").trim().replaceAll("<[^>]*>", "");
-                    book.setDescription(desc + "");
-                    if (inputLine.contains("<a")) {
-                        Pattern pattern = Pattern.compile("href=['\"]([^'\"]+?)['\"]");
-                        Matcher matcher = pattern.matcher(inputLine);
-                        if (matcher.find()) {
-                            URL isbnExplorer = new URL(matcher.group().replace("href=", "").replace("\"", ""));
-                            HttpURLConnection connection = (HttpURLConnection) isbnExplorer.openConnection();
-                            connection.setRequestMethod("GET");
-                            connection.connect();
-                            if (connection.getResponseCode() == 200) {
-                                BufferedReader isbnIn = new BufferedReader(
-                                        new InputStreamReader(isbnExplorer.openStream()));
-                                String isbnInputLine;
-                                Boolean isbnFound = false;
-                                while ((isbnInputLine = isbnIn.readLine()) != null && book.getIsbn() == null) {
-                                    if (isbnInputLine.toLowerCase().contains("isbn")
-                                            || isbnInputLine.toLowerCase().contains("isbn-13")
-                                            || isbnInputLine.toLowerCase().contains("isbn-10")) {
-                                        isbnFound = true;
-                                    }
-                                    if (isbnFound) {
-                                        Pattern patternIsbn = Pattern.compile("978[0-9]{10,13}");
-                                        Matcher matcherIsbn = patternIsbn.matcher(isbnInputLine);
-                                        if (matcherIsbn.find()) {
-                                            book.setIsbn(matcherIsbn.group().replace("-", ""));
-                                            break;
-                                        }
+                temBook.setTitle(getTitleFromImputLine(inputLine));
+            }
+            if (temBook.getLanguage() != null && !inputLine.contains("img")
+                    && !inputLine.contains("book-cover-image")) {
+                desc = desc + inputLine.replace("<p>", "").replace("</p>", "").trim().replaceAll("<[^>]*>", "");
+                temBook.setDescription(desc + "");
+                if (inputLine.contains("<a")) {
+                    Matcher matcher = createPatternMatcher(Constants.hrefRegex, inputLine);
+                    if (matcher.find()) {
+                        URL bookURL = new URL(matcher.group().replace("href=", "").replace("\"", ""));
+                        if (checkSite(bookURL)) {
+                            BufferedReader bookBuffer = new BufferedReader(new InputStreamReader(bookURL.openStream()));
+                            String isbnInputLine;
+                            Boolean isbnFound = false;
+                            while ((isbnInputLine = bookBuffer.readLine()) != null && temBook.getIsbn() == null) {
+                                if (isbnInputLine.toLowerCase().contains("isbn"))
+                                    isbnFound = true;
+                                if (isbnFound) {
+                                    Matcher matcherIsbn = createPatternMatcher(Constants.isbnRegex, isbnInputLine);
+                                    if (matcherIsbn.find()) {
+                                        temBook.setIsbn(matcherIsbn.group().replace("-", ""));
+                                        break;
                                     }
                                 }
-
-                                if (book.getIsbn() == null) {
-                                    book.setIsbn("Unavailable");
-                                }
-                                isbnIn.close();
                             }
+
+                            if (temBook.getIsbn() == null) {
+                                temBook.setIsbn("Unavailable");
+                            }
+                            bookBuffer.close();
                         }
                     }
-
-                }
-                if (inputLine.contains("book-lang")) {
-                    book.setStringLanguage(inputLine.replace("<div class=\"book-lang\">", "").replace("</div>", "")
-                            .trim().toUpperCase(Locale.ENGLISH));
                 }
 
             }
-            in.close();
-        } catch (
+            if (inputLine.contains("book-lang")) {
+                temBook.setStringLanguage(getLanguageFromImputLine(inputLine));
+            }
 
-        IOException e) {
-            e.printStackTrace();
         }
+        kotlinBuffer.close();
 
         return listBook;
 
@@ -190,6 +172,43 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
         } else {
             return false;
         }
+    }
+
+    public Boolean checkSite(URL url) {
+        HttpURLConnection connection;
+        try {
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+            if (connection.getResponseCode() == 200) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+    }
+
+    public String getLanguageFromImputLine(String inputLine) {
+        return inputLine.replace("<div class=\"book-lang\">", "").replace("</div>", "").trim()
+                .toUpperCase(Locale.ENGLISH);
+    }
+
+    public String getTitleFromImputLine(String inputLine) {
+        if (inputLine.contains("<h2 style=\"clear: left\">")) {
+            return inputLine.replace("<h2 style=\"clear: left\">", "").replace("</h2>", "").trim();
+        } else {
+            return inputLine.replace("<h2>", "").replace("</h2>", "").trim();
+        }
+
+    }
+
+    public Matcher createPatternMatcher(String regex, String data) {
+        Pattern pattern = Pattern.compile(regex);
+        return pattern.matcher(data);
 
     }
 

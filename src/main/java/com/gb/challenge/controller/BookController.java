@@ -1,5 +1,7 @@
 package com.gb.challenge.controller;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -88,7 +90,7 @@ public class BookController {
 
     @ApiOperation(value = "list kotlin")
     @RequestMapping(value = "/list/kotlin", method = RequestMethod.GET)
-    public List<BookDTO> listKotlinPage() {
+    public List<BookDTO> listKotlinPage() throws MalformedURLException, IOException {
         return (service.listKotlinPage());
     }
 

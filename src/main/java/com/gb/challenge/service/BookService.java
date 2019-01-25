@@ -1,5 +1,7 @@
 package com.gb.challenge.service;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -26,6 +28,6 @@ public interface BookService {
 
     public Page<BookDTO> find(BookDTO book, Integer pageNumber, Integer pageSize, Direction direction, String orderBy);
 
-	public List<BookDTO> listKotlinPage();
+	public List<BookDTO> listKotlinPage() throws MalformedURLException, IOException;
 
 }
