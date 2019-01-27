@@ -15,12 +15,12 @@ spring:
         default_schema: public
         formatSql: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
     generate-ddl: true
 # Server configuration
 server:
-  port: 8082
+  port: 8080
   servlet:
     context-path: /challenge/api

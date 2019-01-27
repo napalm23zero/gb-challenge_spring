@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
+import com.gb.challenge.crawler.ManningCrawler;
 import com.gb.challenge.dto.BookDTO;
 import com.gb.challenge.model.Book;
 import com.gb.challenge.repository.BookRepository;
@@ -39,6 +40,9 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
 
     @Autowired
     private BookRepository repository;
+    @Autowired 
+    private ManningCrawler manningCrawler;
+
     private ModelMapper mapper = new ModelMapper();
     private Type pageableTypeBookDTO = new TypeToken<Page<BookDTO>>() {
     }.getType();
@@ -128,28 +132,7 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
                 if (inputLine.contains("<a")) {
                     Matcher matcher = createPatternMatcher(Constants.hrefRegex, inputLine);
                     if (matcher.find()) {
-                        URL bookURL = new URL(matcher.group().replace("href=", "").replace("\"", ""));
-                        if (checkSite(bookURL)) {
-                            BufferedReader bookBuffer = new BufferedReader(new InputStreamReader(bookURL.openStream()));
-                            String isbnInputLine;
-                            Boolean isbnFound = false;
-                            while ((isbnInputLine = bookBuffer.readLine()) != null && temBook.getIsbn() == null) {
-                                if (isbnInputLine.toLowerCase().contains("isbn"))
-                                    isbnFound = true;
-                                if (isbnFound) {
-                                    Matcher matcherIsbn = createPatternMatcher(Constants.isbnRegex, isbnInputLine);
-                                    if (matcherIsbn.find()) {
-                                        temBook.setIsbn(matcherIsbn.group().replace("-", ""));
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (temBook.getIsbn() == null) {
-                                temBook.setIsbn("Unavailable");
-                            }
-                            bookBuffer.close();
-                        }
+                        temBook.setIsbn(getIsbnFromInnerSite(matcher.group(1)));
                     }
                 }
 
@@ -157,11 +140,44 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
             if (inputLine.contains("book-lang")) {
                 temBook.setStringLanguage(getLanguageFromImputLine(inputLine));
             }
-
         }
         kotlinBuffer.close();
 
         return listBook;
+
+    }
+
+    private String getIsbnFromInnerSite(String site) {
+        System.out.println(site);
+        Matcher matcher = createPatternMatcher("^.+?[^\\/:](?=[?\\/]|$)", site);
+        if (matcher.find()) {
+            switch (matcher.group()) {
+            case "https://www.manning.com":
+                return manningCrawler.getIsbn(site);
+            case "https://www.packtpub.com":
+                // System.out.println("PACKTPUB");
+                break;
+            case "http://www.fundamental-kotlin.co":
+                // System.out.println("FUNDAMENTAL-KOTLIN");
+                break;
+            case "https://www.amazon.com":
+                // System.out.println("AMAZON");
+                break;
+            case "https://www.kuramkitap.com":
+                // System.out.println("KURAMKITAP");
+                break;
+            case "https://store.raywenderlich.com":
+                // System.out.println("RAYWENDERLICH");
+                break;
+            case "https://www.amazon.de":
+                // System.out.println("AMAZON-DE");
+                break;
+            default:
+                System.out.println("NOFOUND NOFOUND NOFOUND NOFOUND ");
+                break;
+            }
+        }
+        return "123456";
 
     }
 
