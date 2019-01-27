@@ -135,7 +135,7 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
                 temBook.setDescription(desc + "");
                 if (inputLine.contains("<a")) {
                     Matcher matcher = regexUtils.createPatternMatcher(RegexUtils.hrefRegex, inputLine);
-                    if (matcher.find()) {
+                    if (matcher.find() && temBook.getIsbn() == null) {
                         temBook.setIsbn(getIsbnFromInnerSite(matcher.group(1)));
                     }
                 }
@@ -151,10 +151,10 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
     }
 
     private String getIsbnFromInnerSite(String site) {
-        System.out.println(site);
         Matcher matcher = regexUtils.createPatternMatcher(RegexUtils.siteHomeRegex, site);
         if (matcher.find()) {
             switch (matcher.group()) {
+            case "https://manning.com":
             case "https://www.manning.com":
                 ManningCrawler manningCrawler = new ManningCrawler();
                 return manningCrawler.getIsbn(site);
@@ -181,8 +181,7 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
                 return dumbCrawler.getIsbn(site);
             }
         }
-        return "123456";
-
+        return "Unavailable";
     }
 
     public Boolean checkBook(BookDTO book) {
