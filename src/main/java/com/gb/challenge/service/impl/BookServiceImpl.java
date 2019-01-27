@@ -11,16 +11,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
+import com.gb.challenge.crawler.AmazonDECrawler;
+import com.gb.challenge.crawler.AmazonUSCrawler;
+import com.gb.challenge.crawler.DumbCrawler;
+import com.gb.challenge.crawler.FundamentalKotlinCrawler;
+import com.gb.challenge.crawler.KuramKitapCrawler;
 import com.gb.challenge.crawler.ManningCrawler;
+import com.gb.challenge.crawler.PacktPubCrawler;
+import com.gb.challenge.crawler.RayWenderlichCrawler;
 import com.gb.challenge.dto.BookDTO;
 import com.gb.challenge.model.Book;
 import com.gb.challenge.repository.BookRepository;
 import com.gb.challenge.service.BookService;
-import com.gb.challenge.utils.Constants;
+import com.gb.challenge.utils.RegexUtils;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -40,9 +46,7 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
 
     @Autowired
     private BookRepository repository;
-    @Autowired 
-    private ManningCrawler manningCrawler;
-
+    private RegexUtils regexUtils = new RegexUtils();
     private ModelMapper mapper = new ModelMapper();
     private Type pageableTypeBookDTO = new TypeToken<Page<BookDTO>>() {
     }.getType();
@@ -130,12 +134,11 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
                 desc = desc + inputLine.replace("<p>", "").replace("</p>", "").trim().replaceAll("<[^>]*>", "");
                 temBook.setDescription(desc + "");
                 if (inputLine.contains("<a")) {
-                    Matcher matcher = createPatternMatcher(Constants.hrefRegex, inputLine);
+                    Matcher matcher = regexUtils.createPatternMatcher(RegexUtils.hrefRegex, inputLine);
                     if (matcher.find()) {
                         temBook.setIsbn(getIsbnFromInnerSite(matcher.group(1)));
                     }
                 }
-
             }
             if (inputLine.contains("book-lang")) {
                 temBook.setStringLanguage(getLanguageFromImputLine(inputLine));
@@ -149,32 +152,33 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
 
     private String getIsbnFromInnerSite(String site) {
         System.out.println(site);
-        Matcher matcher = createPatternMatcher("^.+?[^\\/:](?=[?\\/]|$)", site);
+        Matcher matcher = regexUtils.createPatternMatcher(RegexUtils.siteHomeRegex, site);
         if (matcher.find()) {
             switch (matcher.group()) {
             case "https://www.manning.com":
+                ManningCrawler manningCrawler = new ManningCrawler();
                 return manningCrawler.getIsbn(site);
             case "https://www.packtpub.com":
-                // System.out.println("PACKTPUB");
-                break;
+                PacktPubCrawler packtPubCrawler = new PacktPubCrawler();
+                return packtPubCrawler.getIsbn(site);
             case "http://www.fundamental-kotlin.co":
-                // System.out.println("FUNDAMENTAL-KOTLIN");
-                break;
-            case "https://www.amazon.com":
-                // System.out.println("AMAZON");
-                break;
+                FundamentalKotlinCrawler fundamentalKotlinCrawler = new FundamentalKotlinCrawler();
+                return fundamentalKotlinCrawler.getIsbn(site);
             case "https://www.kuramkitap.com":
-                // System.out.println("KURAMKITAP");
-                break;
+                KuramKitapCrawler kuramKitapCrawler = new KuramKitapCrawler();
+                return kuramKitapCrawler.getIsbn(site);
             case "https://store.raywenderlich.com":
-                // System.out.println("RAYWENDERLICH");
-                break;
+                RayWenderlichCrawler rayWenderlichCrawler = new RayWenderlichCrawler();
+                return rayWenderlichCrawler.getIsbn(site);
+            case "https://www.amazon.com":
+                AmazonUSCrawler amazonUSCrawler = new AmazonUSCrawler();
+                return amazonUSCrawler.getIsbn(site);
             case "https://www.amazon.de":
-                // System.out.println("AMAZON-DE");
-                break;
+                AmazonDECrawler amazonDECrawler = new AmazonDECrawler();
+                return amazonDECrawler.getIsbn(site);
             default:
-                System.out.println("NOFOUND NOFOUND NOFOUND NOFOUND ");
-                break;
+                DumbCrawler dumbCrawler = new DumbCrawler();
+                return dumbCrawler.getIsbn(site);
             }
         }
         return "123456";
@@ -219,12 +223,6 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
         } else {
             return inputLine.replace("<h2>", "").replace("</h2>", "").trim();
         }
-
-    }
-
-    public Matcher createPatternMatcher(String regex, String data) {
-        Pattern pattern = Pattern.compile(regex);
-        return pattern.matcher(data);
 
     }
 
