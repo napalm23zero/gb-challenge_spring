@@ -5,15 +5,16 @@ import java.net.MalformedURLException;
 
 import javax.validation.Valid;
 
-import com.gb.challenge.dto.BookCrawlerListDTO;
-import com.gb.challenge.dto.BookDTO;
+import com.gb.challenge.dto.book.BookCrawlerListDTO;
+import com.gb.challenge.dto.book.BookDTO;
+import com.gb.challenge.dto.book.BookNoIdDTO;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
 
 public interface BookService {
 
-    public BookDTO create(BookDTO book);
+    public BookDTO create(BookNoIdDTO book);
 
     public BookDTO read(Long id);
 

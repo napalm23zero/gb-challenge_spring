@@ -5,8 +5,9 @@ import java.net.MalformedURLException;
 
 import javax.validation.Valid;
 
-import com.gb.challenge.dto.BookCrawlerListDTO;
-import com.gb.challenge.dto.BookDTO;
+import com.gb.challenge.dto.book.BookCrawlerListDTO;
+import com.gb.challenge.dto.book.BookDTO;
+import com.gb.challenge.dto.book.BookNoIdDTO;
 import com.gb.challenge.service.BookService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ public class BookController {
 
     @ApiOperation(value = "Create new Book")
     @RequestMapping(method = RequestMethod.POST)
-    public BookDTO create(@ApiParam(value = "Book", required = true) @RequestBody BookDTO Book) {
+    public BookDTO create(@ApiParam(value = "Book", required = true) @RequestBody BookNoIdDTO Book) {
         return (service.create(Book));
     }
 

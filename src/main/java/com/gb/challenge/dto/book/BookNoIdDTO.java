@@ -1,4 +1,5 @@
-package com.gb.challenge.dto;
+
+package com.gb.challenge.dto.book;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -18,9 +19,7 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookDTO {
-
-    private Long id;
+public class BookNoIdDTO {
 
     private String title;
 

@@ -8,12 +8,7 @@ import java.util.regex.Matcher;
 
 import com.gb.challenge.utils.RegexUtils;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 public class DumbCrawler implements Crawler {
-
-    @Autowired
-    private RegexUtils regexUtils;
 
     @Override
     public String getIsbn(String site) {
@@ -27,7 +22,7 @@ public class DumbCrawler implements Crawler {
                 if (inputLine.toLowerCase().contains("isbn"))
                     isbnFound = true;
                 if (isbnFound) {
-                    Matcher matcher = regexUtils.createPatternMatcher(RegexUtils.isbnRegex, inputLine);
+                    Matcher matcher = RegexUtils.createPatternMatcher(RegexUtils.ISBN, inputLine);
                     if (matcher.find()) {
                         return matcher.group(0).replace("-", "");
                     }

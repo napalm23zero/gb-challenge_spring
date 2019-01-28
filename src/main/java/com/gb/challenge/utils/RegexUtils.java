@@ -5,11 +5,11 @@ import java.util.regex.Pattern;
 
 public class RegexUtils {
 
-    public static final String hrefRegex = "href=['\"]([^'\"]+?)['\"]";
-    public static final String isbnRegex = "978[0-9]{10,13}";
-    public static final String siteHomeRegex = "^.+?[^\\/:](?=[?\\/]|$)";
+    public static final String HREF = "href=['\"]([^'\"]+?)['\"]";
+    public static final String ISBN = "978[0-9]{10,13}";
+    public static final String SITE = "^.+?[^\\/:](?=[?\\/]|$)";
 
-    public Matcher createPatternMatcher(String regex, String data) {
+    public static Matcher createPatternMatcher(String regex, String data) {
         Pattern pattern = Pattern.compile(regex);
         return pattern.matcher(data);
     }

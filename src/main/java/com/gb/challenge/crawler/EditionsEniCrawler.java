@@ -11,9 +11,8 @@ public final class EditionsEniCrawler implements Crawler {
 
     @Override
     public String getIsbn(String site) {
-    
-        RegexUtils regexUtils = new RegexUtils();
-        Matcher matcher = regexUtils.createPatternMatcher(RegexUtils.isbnRegex, site);
+
+        Matcher matcher = RegexUtils.createPatternMatcher(RegexUtils.ISBN, site);
         if (matcher.find())
             return matcher.group();
         return "Unavailable";

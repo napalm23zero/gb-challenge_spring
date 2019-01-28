@@ -1,4 +1,4 @@
-package com.gb.challenge.dto;
+package com.gb.challenge.dto.book;
 
 import java.util.List;
 

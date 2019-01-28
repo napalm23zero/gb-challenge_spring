@@ -8,27 +8,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 
 import javax.transaction.Transactional;
 
-import com.gb.challenge.crawler.AmazonDECrawler;
-import com.gb.challenge.crawler.AmazonUSCrawler;
-import com.gb.challenge.crawler.DumbCrawler;
-import com.gb.challenge.crawler.EditionsEniCrawler;
-import com.gb.challenge.crawler.FundamentalKotlinCrawler;
-import com.gb.challenge.crawler.KuramKitapCrawler;
-import com.gb.challenge.crawler.LeanPubCrawler;
-import com.gb.challenge.crawler.ManningCrawler;
-import com.gb.challenge.crawler.PacktPubCrawler;
-import com.gb.challenge.crawler.RayWenderlichCrawler;
-import com.gb.challenge.dto.BookCrawlerListDTO;
-import com.gb.challenge.dto.BookDTO;
+import com.gb.challenge.crawler.*;
+import com.gb.challenge.dto.book.*;
 import com.gb.challenge.model.Book;
 import com.gb.challenge.repository.BookRepository;
 import com.gb.challenge.service.BookService;
 import com.gb.challenge.utils.RegexUtils;
+import com.gb.challenge.utils.TextCleanup;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -42,37 +32,64 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
+/**
+ * Simples CRUD operarions
+ * Advanced Search and List
+ * WebCrawling implementation for KotlingLang Book Site
+ * 
+ * @author Rodrigo Dantas - rodrigodantas.91@gmail.com
+ * @since 2019.01.26
+ * 
+ */
 @Service("bookService")
 @Transactional
 public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements BookService {
 
     @Autowired
     private BookRepository repository;
-    private RegexUtils regexUtils = new RegexUtils();
-    private ModelMapper mapper = new ModelMapper();
-    private Type pageableTypeBookDTO = new TypeToken<Page<BookDTO>>() {
-    }.getType();
-    private Type listableTypeBook = new TypeToken<List<Book>>() {
-    }.getType();
-    private Type listableTypeBookDTO = new TypeToken<List<BookDTO>>() {
-    }.getType();
 
-    public BookServiceImpl() {
+    /** MODEL MAPPER */
+    private final ModelMapper mapper = new ModelMapper();
+    private final Type pageableTypeBookDTO = new TypeToken<Page<BookDTO>>() {}.getType(); // getPage Type for BookDTO
+    private final Type listableTypeBookDTO = new TypeToken<List<BookDTO>>() {}.getType(); // Get List Type for BookDTO
+    private final Type listableTypeBook = new TypeToken<List<Book>>() {}.getType();       // Get List Type for Book
 
-    }
-
+    /**
+     * Create a new single book on Database
+     * 
+     * @param book - A Single Book Object with basic info of a Book
+     * @return A Single Book Object that was just created
+     * @see BookRepository - Persistence Interface
+     * 
+     */
     @Override
-    public BookDTO create(BookDTO book) {
+    public BookDTO create(BookNoIdDTO book) {
         Book newBook = mapper.map(book, Book.class);
-        newBook.setId(null);
         return mapper.map(repository.save(newBook), BookDTO.class);
     }
 
+    /**
+     * Get single book from Database
+     * 
+     * @param id - Unique Identifier of a Book
+     * @return A Single Book Object that was requested by id
+     * @see BookRepository - Persistence Interface
+     * 
+     */
     @Override
     public BookDTO read(Long id) {
         return mapper.map(repository.getOne(id), BookDTO.class);
     }
 
+    /**
+     * Updates a single book on Database
+     * 
+     * @param book - A Single Book Object the id of existing Object and new data
+     *             tobe applied
+     * @return A Single Book Object that was just updated
+     * @see BookRepository - Persistence Interface
+     * 
+     */
     @Override
     public BookDTO update(BookDTO book) {
         BookDTO theBook = mapper.map(repository.getOne(book.getId()), BookDTO.class);
@@ -82,11 +99,29 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
         return mapper.map(repository.save(newBook), BookDTO.class);
     }
 
+    /**
+     * Delete a single book from Database
+     * 
+     * @param id - Unique Identifier of a Book
+     * @see BookRepository - Persistence Interface
+     * 
+     */
     @Override
     public void delete(Long id) {
         repository.deleteById(id);
     }
 
+    /**
+     * List all Books from Database
+     * 
+     * @param pageNumber - Page that will be shown on Response
+     * @param pageSize   - Number of items to display on requested Page
+     * @param direction  - Order of items ASC / DESC
+     * @param orderBy    - Attribute that will be used as Order Index
+     * @return A pageable element with a Books Collection
+     * @see BookRepository - Persistence Interface
+     * 
+     */
     @Override
     public Page<BookDTO> list(Integer pageNumber, Integer pageSize, Direction direction, String orderBy) {
         Pageable pagination = PageRequest.of(pageNumber, pageSize, direction, orderBy);
@@ -98,6 +133,19 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
 
     }
 
+    /**
+     * Search all Books from Database matching with <b>CONTAINING</b> filters
+     * 
+     * @param book       - Object filled with attributes to be used as filters
+     * @param pageNumber - Page that will be shown on Response
+     * @param pageSize   - Number of items to display on requested Page
+     * @param direction  - Order of items ASC / DESC
+     * @param orderBy    - Attribute that will be used as Order Index
+     * @return A pageable element with a Books Collection that matched with given
+     *         Exemple
+     * @see BookRepository - Persistence Interface
+     * 
+     */
     @Override
     public Page<BookDTO> search(BookDTO book, Integer pageNumber, Integer pageSize, Direction direction,
             String orderBy) {
@@ -108,6 +156,19 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
         return (mapper.map(repository.findAll(query, pagination), pageableTypeBookDTO));
     }
 
+    /**
+     * Search all Books from Database matching with <b>EXACT</b> filters
+     * 
+     * @param book       - Object filled with attributes to be used as filters
+     * @param pageNumber - Page that will be shown on Response
+     * @param pageSize   - Number of items to display on requested Page
+     * @param direction  - Order of items ASC / DESC
+     * @param orderBy    - Attribute that will be used as Order Index
+     * @return A pageable element with a Books Collection that matched with given
+     *         Exemple
+     * @see BookRepository - Persistence Interface
+     * 
+     */
     @Override
     public Page<BookDTO> find(BookDTO book, Integer pageNumber, Integer pageSize, Direction direction, String orderBy) {
         Pageable pagination = PageRequest.of(pageNumber, pageSize, direction, orderBy);
@@ -117,39 +178,51 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
         return (mapper.map(repository.findAll(query, pagination), pageableTypeBookDTO));
     }
 
+    /**
+     * List all Books from page, directly from "Kotlinlang Books Site" using
+     * "WebCrawling" techinique, this method runs through all page DOM comparing and
+     * collecting data to build requested objects. This method save the found items
+     * on Database too.
+     * 
+     * @return An Object containing a count of found items at the page and the books
+     *         info collected.
+     * @see BookRepository - Persistence Interface
+     * @link https://kotlinlang.org/docs/books.html
+     * @inheritDoc https://en.wikipedia.org/wiki/Web_crawler
+     */
     @Override
     public BookCrawlerListDTO listKotlinPage() throws MalformedURLException, IOException {
-        BookDTO temBook = new BookDTO();
+        BookDTO book = new BookDTO();
         List<BookDTO> listBook = new ArrayList<>();
         URL kotlinURL = new URL("https://kotlinlang.org/docs/books.html");
-        BufferedReader kotlinBuffer = new BufferedReader(new InputStreamReader(kotlinURL.openStream()));
         String desc = "";
         String inputLine;
         Integer bookCount = 0;
 
+        BufferedReader kotlinBuffer = new BufferedReader(new InputStreamReader(kotlinURL.openStream()));
+
         while ((inputLine = kotlinBuffer.readLine()) != null) {
             if (inputLine.contains("<h2")) {
-                if (checkBook(temBook) == true) { // Reset TempObject
-                    listBook.add(temBook);
-                    temBook = new BookDTO();
+                if (bookIsFilled(book)) {
+                    listBook.add(book);
+                    book = new BookDTO();
                     desc = "";
                     bookCount++;
                 }
-                temBook.setTitle(getTitleFromImputLine(inputLine));
+                book.setTitle(getTitleFromImputLine(inputLine));
             }
-            if (temBook.getLanguage() != null && !inputLine.contains("img")
-                    && !inputLine.contains("book-cover-image")) {
-                desc = desc + inputLine.replace("<p>", "").replace("</p>", "").trim().replaceAll("<[^>]*>", "");
-                temBook.setDescription(desc + "");
+            if (book.getLanguage() != null && !inputLine.contains("img") && !inputLine.contains("book-cover-image")) {
+                desc = desc + TextCleanup.paragraph(inputLine);
+                book.setDescription(desc + "");
                 if (inputLine.contains("<a")) {
-                    Matcher matcher = regexUtils.createPatternMatcher(RegexUtils.hrefRegex, inputLine);
-                    if (matcher.find() && temBook.getIsbn() == null) {
-                        temBook.setIsbn(getIsbnFromInnerSite(matcher.group(1)));
+                    Matcher matcher = RegexUtils.createPatternMatcher(RegexUtils.HREF, inputLine);
+                    if (matcher.find() && book.getIsbn() == null) {
+                        book.setIsbn(getIsbnFromInnerSite(matcher.group(1)));
                     }
                 }
             }
             if (inputLine.contains("book-lang")) {
-                temBook.setStringLanguage(getLanguageFromImputLine(inputLine));
+                book.setStringLanguage(getLanguageFromImputLine(inputLine));
             }
         }
         kotlinBuffer.close();
@@ -160,49 +233,84 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
         return result;
     }
 
-    /** HELPERS */
+    /**
+     * [HELPER] According the given URL, this method directs WebCrwaling Logic to
+     * specific knowing Site Patterns, or, by default, uses a more costly but
+     * generic mechanism to find ISBN number.
+     * 
+     * @param site - Given UEL that, may contain the ISBN number
+     * @return ISBN number, or, if not found returns "Unavailable"
+     * @see Crawler
+     * @inheritDoc https://en.wikipedia.org/wiki/International_Standard_Book_Number
+     * 
+     */
     private String getIsbnFromInnerSite(String site) {
-        Matcher matcher = regexUtils.createPatternMatcher(RegexUtils.siteHomeRegex, site);
+        Matcher matcher = RegexUtils.createPatternMatcher(RegexUtils.SITE, site);
         if (matcher.find()) {
             switch (matcher.group()) {
             case "https://manning.com":
             case "https://www.manning.com":
-                ManningCrawler manningCrawler = new ManningCrawler();
-                return manningCrawler.getIsbn(site);
+                return new ManningCrawler().getIsbn(site);
             case "https://www.packtpub.com":
-                PacktPubCrawler packtPubCrawler = new PacktPubCrawler();
-                return packtPubCrawler.getIsbn(site);
+                return new PacktPubCrawler().getIsbn(site);
             case "http://www.fundamental-kotlin.com":
-                FundamentalKotlinCrawler fundamentalKotlinCrawler = new FundamentalKotlinCrawler();
-                return fundamentalKotlinCrawler.getIsbn(site);
+                return new FundamentalKotlinCrawler().getIsbn(site);
             case "https://www.kuramkitap.com":
-                KuramKitapCrawler kuramKitapCrawler = new KuramKitapCrawler();
-                return kuramKitapCrawler.getIsbn(site);
+                return new KuramKitapCrawler().getIsbn(site);
             case "https://leanpub.com/":
-                LeanPubCrawler leanPubCrawler = new LeanPubCrawler();
-                return leanPubCrawler.getIsbn(site);
+                return new LeanPubCrawler().getIsbn(site);
             case "https://www.editions-eni.fr":
-                EditionsEniCrawler editionsEniCrawler = new EditionsEniCrawler();
-                return editionsEniCrawler.getIsbn(site);
+                return new EditionsEniCrawler().getIsbn(site);
             case "https://www.raywenderlich.com":
             case "https://store.raywenderlich.com":
-                RayWenderlichCrawler rayWenderlichCrawler = new RayWenderlichCrawler();
-                return rayWenderlichCrawler.getIsbn(site);
+                return new RayWenderlichCrawler().getIsbn(site);
             case "https://www.amazon.com":
-                AmazonUSCrawler amazonUSCrawler = new AmazonUSCrawler();
-                return amazonUSCrawler.getIsbn(site);
+                return new AmazonUSCrawler().getIsbn(site);
             case "https://www.amazon.de":
-                AmazonDECrawler amazonDECrawler = new AmazonDECrawler();
-                return amazonDECrawler.getIsbn(site);
+                return new AmazonDECrawler().getIsbn(site);
             default:
-                DumbCrawler dumbCrawler = new DumbCrawler();
-                return dumbCrawler.getIsbn(site);
+                return new DumbCrawler().getIsbn(site);
             }
         }
         return "Unavailable";
     }
 
-    public Boolean checkBook(BookDTO book) {
+    /**
+     * Clean and Prepare given HTML element and turns it into Plain Text related
+     * Book Language
+     * 
+     * @param inputLine - Given HTML element
+     * @return Book Language Initials
+     * 
+     */
+    public String getLanguageFromImputLine(String inputLine) {
+        return TextCleanup.divLang(inputLine);
+    }
+
+    /**
+     * Clean and Prepare given HTML element and turns it into Plain Text related
+     * Book Ttitle. This method s prepared more then one identified tittle type.
+     * 
+     * @param inputLine - Given HTML element
+     * @return Book Title
+     * 
+     */
+    public String getTitleFromImputLine(String inputLine) {
+        if (inputLine.contains("<h2 style=\"clear: left\">")) {
+            return TextCleanup.h2FirstTittle(inputLine);
+        } else {
+            return TextCleanup.h2SimpleTittle(inputLine);
+        }
+    }
+
+    /**
+     * This method checks if a given Book is completely filled, or has missing
+     * attributes.
+     * 
+     * @param book - Given Book Object
+     * @return Bollean informing if book is Filled or Not
+     */
+    public Boolean bookIsFilled(BookDTO book) {
         if (book.getDescription() != null && book.getIsbn() != null && book.getLanguage() != null
                 && book.getTitle() != null) {
             return true;
@@ -210,19 +318,4 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
             return false;
         }
     }
-
-    public String getLanguageFromImputLine(String inputLine) {
-        return inputLine.replace("<div class=\"book-lang\">", "").replace("</div>", "").trim()
-                .toUpperCase(Locale.ENGLISH);
-    }
-
-    public String getTitleFromImputLine(String inputLine) {
-        if (inputLine.contains("<h2 style=\"clear: left\">")) {
-            return inputLine.replace("<h2 style=\"clear: left\">", "").replace("</h2>", "").trim();
-        } else {
-            return inputLine.replace("<h2>", "").replace("</h2>", "").trim();
-        }
-
-    }
-
 }
