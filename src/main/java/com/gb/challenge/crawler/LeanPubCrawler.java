@@ -1,8 +1,8 @@
 package com.gb.challenge.crawler;
 
-public final class AmazonDECrawler implements Crawler {
+public final class LeanPubCrawler implements Crawler {
 
-    public AmazonDECrawler() {
+    public LeanPubCrawler() {
     }
 
     @Override

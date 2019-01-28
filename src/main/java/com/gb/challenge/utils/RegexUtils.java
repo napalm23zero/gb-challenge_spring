@@ -12,6 +12,5 @@ public class RegexUtils {
     public Matcher createPatternMatcher(String regex, String data) {
         Pattern pattern = Pattern.compile(regex);
         return pattern.matcher(data);
-
     }
 }

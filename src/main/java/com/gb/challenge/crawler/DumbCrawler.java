@@ -18,27 +18,24 @@ public class DumbCrawler implements Crawler {
     @Override
     public String getIsbn(String site) {
 
-        // try {
-        //     URL url = new URL(site);
-        //     BufferedReader bookBuffer = new BufferedReader(new InputStreamReader(url.openStream()));
-        //     String inputLine;
-        //     Boolean isbnFound = false;
-        //     while ((inputLine = bookBuffer.readLine()) != null) {
-        //         if (inputLine.toLowerCase().contains("isbn"))
-        //             isbnFound = true;
-        //         if (isbnFound) {
-        //             Matcher matcher = regexUtils.createPatternMatcher(RegexUtils.isbnRegex, inputLine);
-        //             if (matcher.find()) {
-        //                 System.out.println("###########");
-        //                 System.out.println(matcher.group(0));
-
-        //                 return matcher.group(0).replace("-", "");
-        //             }
-        //         }
-        //     }
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        // }
+        try {
+            URL url = new URL(site);
+            BufferedReader bookBuffer = new BufferedReader(new InputStreamReader(url.openStream()));
+            String inputLine;
+            Boolean isbnFound = false;
+            while ((inputLine = bookBuffer.readLine()) != null) {
+                if (inputLine.toLowerCase().contains("isbn"))
+                    isbnFound = true;
+                if (isbnFound) {
+                    Matcher matcher = regexUtils.createPatternMatcher(RegexUtils.isbnRegex, inputLine);
+                    if (matcher.find()) {
+                        return matcher.group(0).replace("-", "");
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return "Unavailable";
 
     }

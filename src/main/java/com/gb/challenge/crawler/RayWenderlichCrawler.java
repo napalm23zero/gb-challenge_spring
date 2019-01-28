@@ -4,8 +4,7 @@ public class RayWenderlichCrawler implements Crawler {
 
     @Override
     public String getIsbn(String site) {
-        System.out.println(site);
-        return "654654";
+        return "Unavailable";
     }
 
 }

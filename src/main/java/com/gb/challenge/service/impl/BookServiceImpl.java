@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -17,11 +16,14 @@ import javax.transaction.Transactional;
 import com.gb.challenge.crawler.AmazonDECrawler;
 import com.gb.challenge.crawler.AmazonUSCrawler;
 import com.gb.challenge.crawler.DumbCrawler;
+import com.gb.challenge.crawler.EditionsEniCrawler;
 import com.gb.challenge.crawler.FundamentalKotlinCrawler;
 import com.gb.challenge.crawler.KuramKitapCrawler;
+import com.gb.challenge.crawler.LeanPubCrawler;
 import com.gb.challenge.crawler.ManningCrawler;
 import com.gb.challenge.crawler.PacktPubCrawler;
 import com.gb.challenge.crawler.RayWenderlichCrawler;
+import com.gb.challenge.dto.BookCrawlerListDTO;
 import com.gb.challenge.dto.BookDTO;
 import com.gb.challenge.model.Book;
 import com.gb.challenge.repository.BookRepository;
@@ -49,6 +51,10 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
     private RegexUtils regexUtils = new RegexUtils();
     private ModelMapper mapper = new ModelMapper();
     private Type pageableTypeBookDTO = new TypeToken<Page<BookDTO>>() {
+    }.getType();
+    private Type listableTypeBook = new TypeToken<List<Book>>() {
+    }.getType();
+    private Type listableTypeBookDTO = new TypeToken<List<BookDTO>>() {
     }.getType();
 
     public BookServiceImpl() {
@@ -112,13 +118,14 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
     }
 
     @Override
-    public List<BookDTO> listKotlinPage() throws MalformedURLException, IOException {
+    public BookCrawlerListDTO listKotlinPage() throws MalformedURLException, IOException {
         BookDTO temBook = new BookDTO();
         List<BookDTO> listBook = new ArrayList<>();
         URL kotlinURL = new URL("https://kotlinlang.org/docs/books.html");
         BufferedReader kotlinBuffer = new BufferedReader(new InputStreamReader(kotlinURL.openStream()));
         String desc = "";
         String inputLine;
+        Integer bookCount = 0;
 
         while ((inputLine = kotlinBuffer.readLine()) != null) {
             if (inputLine.contains("<h2")) {
@@ -126,6 +133,7 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
                     listBook.add(temBook);
                     temBook = new BookDTO();
                     desc = "";
+                    bookCount++;
                 }
                 temBook.setTitle(getTitleFromImputLine(inputLine));
             }
@@ -145,11 +153,14 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
             }
         }
         kotlinBuffer.close();
-
-        return listBook;
-
+        List<Book> newBooks = repository.saveAll(mapper.map(listBook, listableTypeBook));
+        BookCrawlerListDTO result = new BookCrawlerListDTO();
+        result.setBooks(mapper.map(newBooks, listableTypeBookDTO));
+        result.setNumberBooks(bookCount);
+        return result;
     }
 
+    /** HELPERS */
     private String getIsbnFromInnerSite(String site) {
         Matcher matcher = regexUtils.createPatternMatcher(RegexUtils.siteHomeRegex, site);
         if (matcher.find()) {
@@ -161,12 +172,19 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
             case "https://www.packtpub.com":
                 PacktPubCrawler packtPubCrawler = new PacktPubCrawler();
                 return packtPubCrawler.getIsbn(site);
-            case "http://www.fundamental-kotlin.co":
+            case "http://www.fundamental-kotlin.com":
                 FundamentalKotlinCrawler fundamentalKotlinCrawler = new FundamentalKotlinCrawler();
                 return fundamentalKotlinCrawler.getIsbn(site);
             case "https://www.kuramkitap.com":
                 KuramKitapCrawler kuramKitapCrawler = new KuramKitapCrawler();
                 return kuramKitapCrawler.getIsbn(site);
+            case "https://leanpub.com/":
+                LeanPubCrawler leanPubCrawler = new LeanPubCrawler();
+                return leanPubCrawler.getIsbn(site);
+            case "https://www.editions-eni.fr":
+                EditionsEniCrawler editionsEniCrawler = new EditionsEniCrawler();
+                return editionsEniCrawler.getIsbn(site);
+            case "https://www.raywenderlich.com":
             case "https://store.raywenderlich.com":
                 RayWenderlichCrawler rayWenderlichCrawler = new RayWenderlichCrawler();
                 return rayWenderlichCrawler.getIsbn(site);
@@ -191,24 +209,6 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
         } else {
             return false;
         }
-    }
-
-    public Boolean checkSite(URL url) {
-        HttpURLConnection connection;
-        try {
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            if (connection.getResponseCode() == 200) {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-
     }
 
     public String getLanguageFromImputLine(String inputLine) {

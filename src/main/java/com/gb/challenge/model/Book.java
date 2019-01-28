@@ -36,10 +36,10 @@ public class Book {
     @Column(name = "title", unique = false, nullable = false, length = 256)
     private String title;
 
-    @Column(name = "description", unique = false, nullable = false, length = 512)
+    @Column(name = "description", unique = false, nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "isbn", unique = true, nullable = false)
+    @Column(name = "isbn", unique = false, nullable = false)
     private String isbn;
 
     @Column(name = "Language", unique = false, nullable = false, length = 2)

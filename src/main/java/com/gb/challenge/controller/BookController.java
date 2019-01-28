@@ -2,10 +2,10 @@ package com.gb.challenge.controller;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.List;
 
 import javax.validation.Valid;
 
+import com.gb.challenge.dto.BookCrawlerListDTO;
 import com.gb.challenge.dto.BookDTO;
 import com.gb.challenge.service.BookService;
 
@@ -90,7 +90,7 @@ public class BookController {
 
     @ApiOperation(value = "list kotlin")
     @RequestMapping(value = "/list/kotlin", method = RequestMethod.GET)
-    public List<BookDTO> listKotlinPage() throws MalformedURLException, IOException {
+    public BookCrawlerListDTO listKotlinPage() throws MalformedURLException, IOException {
         return (service.listKotlinPage());
     }
 

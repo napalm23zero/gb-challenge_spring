@@ -2,10 +2,10 @@ package com.gb.challenge.service;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.List;
 
 import javax.validation.Valid;
 
+import com.gb.challenge.dto.BookCrawlerListDTO;
 import com.gb.challenge.dto.BookDTO;
 
 import org.springframework.data.domain.Page;
@@ -28,6 +28,6 @@ public interface BookService {
 
     public Page<BookDTO> find(BookDTO book, Integer pageNumber, Integer pageSize, Direction direction, String orderBy);
 
-	public List<BookDTO> listKotlinPage() throws MalformedURLException, IOException;
+    public BookCrawlerListDTO listKotlinPage() throws MalformedURLException, IOException;
 
 }
