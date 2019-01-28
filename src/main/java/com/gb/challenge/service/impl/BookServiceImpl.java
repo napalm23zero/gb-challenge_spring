@@ -10,10 +10,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import javax.transaction.Transactional;
-
-import com.gb.challenge.crawler.*;
-import com.gb.challenge.dto.book.*;
+import com.gb.challenge.crawler.AmazonDECrawler;
+import com.gb.challenge.crawler.AmazonUSCrawler;
+import com.gb.challenge.crawler.Crawler;
+import com.gb.challenge.crawler.DumbCrawler;
+import com.gb.challenge.crawler.EditionsEniCrawler;
+import com.gb.challenge.crawler.FundamentalKotlinCrawler;
+import com.gb.challenge.crawler.KuramKitapCrawler;
+import com.gb.challenge.crawler.LeanPubCrawler;
+import com.gb.challenge.crawler.ManningCrawler;
+import com.gb.challenge.crawler.PacktPubCrawler;
+import com.gb.challenge.crawler.RayWenderlichCrawler;
+import com.gb.challenge.dto.book.BookCrawlerListDTO;
+import com.gb.challenge.dto.book.BookDTO;
+import com.gb.challenge.dto.book.BookNoIdDTO;
 import com.gb.challenge.model.Book;
 import com.gb.challenge.repository.BookRepository;
 import com.gb.challenge.service.BookService;
@@ -42,7 +52,6 @@ import org.springframework.stereotype.Service;
  * 
  */
 @Service("bookService")
-@Transactional
 public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements BookService {
 
     @Autowired
@@ -65,7 +74,8 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
     @Override
     public BookDTO create(BookNoIdDTO book) {
         Book newBook = mapper.map(book, Book.class);
-        return mapper.map(repository.save(newBook), BookDTO.class);
+        Book var = repository.save(newBook);
+        return mapper.map(var, BookDTO.class);
     }
 
     /**
@@ -125,11 +135,8 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
     @Override
     public Page<BookDTO> list(Integer pageNumber, Integer pageSize, Direction direction, String orderBy) {
         Pageable pagination = PageRequest.of(pageNumber, pageSize, direction, orderBy);
-        ExampleMatcher matcher = ExampleMatcher.matching().withIgnoreCase().withIgnoreNullValues()
-                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING).withIgnorePaths("id");
-        Book book = new Book();
-        Example<Book> query = Example.of(book, matcher);
-        return (mapper.map(repository.findAll(query, pagination), pageableTypeBookDTO));
+        Page<Book> var = repository.findAll(pagination);
+        return (mapper.map(var, pageableTypeBookDTO));
 
     }
 

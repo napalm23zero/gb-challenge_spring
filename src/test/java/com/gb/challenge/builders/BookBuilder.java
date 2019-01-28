@@ -1,6 +1,6 @@
 package com.gb.challenge.builders;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.gb.challenge.enums.Language;
@@ -12,24 +12,26 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BookBuilder {
 
+
     private Book book;
 
     public static List<Book> someBooks(int length) {
-        List<Book> books = Arrays.asList();
+        List<Book> books = new ArrayList<>();
         for (long i = 0; i < length; i++) {
-            books.add(oneBook(
-                    i, 
-                    "Book " + RandomUtil.integerRand(), 
-                    RandomUtil.lorenIpsumRand(0, 500), 
-                    RandomUtil.language(),
-                    RandomUtil.isbnRand()
-                ).build());
+            books.add(oneBook().build());
         }
         return books;
     }
 
-    public static List<Book> someBooks(Book... produtos) {
-        return Arrays.asList(produtos);
+    public static BookBuilder oneBook() {
+        BookBuilder builder = new BookBuilder();
+        builder.book = new Book();
+        builder.book.setId(RandomUtil.longRand());
+        builder.book.setTitle("Book " + RandomUtil.integerRand());
+        builder.book.setDescription(RandomUtil.lorenIpsumRand(0, 500));
+        builder.book.setLanguage(RandomUtil.language());
+        builder.book.setIsbn(RandomUtil.isbnRand());
+        return builder;
     }
 
     public static BookBuilder oneBook(Long id, String title, String description, Language language, String isbn) {
@@ -43,7 +45,7 @@ public class BookBuilder {
         return builder;
     }
 
-    private Book build() {
+    public Book build() {
         return book;
     }
 
