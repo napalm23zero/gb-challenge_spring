@@ -3,7 +3,7 @@ package com.gb.challenge.utils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class RegexUtils {
+public class RegexUtil {
 
     public static final String HREF = "href=['\"]([^'\"]+?)['\"]";
     public static final String ISBN = "978[0-9]{10,13}";

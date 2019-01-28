@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class ValidationUtils {
+public class ValidationUtil {
 
     public Boolean checkSite(URL url) {
         HttpURLConnection connection;

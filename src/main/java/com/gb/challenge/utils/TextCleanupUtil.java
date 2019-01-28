@@ -2,9 +2,9 @@ package com.gb.challenge.utils;
 
 import java.util.Locale;
 
-public class TextCleanup {
+public class TextCleanupUtil {
 
-    private TextCleanup(){
+    private TextCleanupUtil(){
 
     }
 

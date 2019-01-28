@@ -2,7 +2,7 @@ package com.gb.challenge.crawler;
 
 import java.util.regex.Matcher;
 
-import com.gb.challenge.utils.RegexUtils;
+import com.gb.challenge.utils.RegexUtil;
 
 public final class EditionsEniCrawler implements Crawler {
 
@@ -12,7 +12,7 @@ public final class EditionsEniCrawler implements Crawler {
     @Override
     public String getIsbn(String site) {
 
-        Matcher matcher = RegexUtils.createPatternMatcher(RegexUtils.ISBN, site);
+        Matcher matcher = RegexUtil.createPatternMatcher(RegexUtil.ISBN, site);
         if (matcher.find())
             return matcher.group();
         return "Unavailable";

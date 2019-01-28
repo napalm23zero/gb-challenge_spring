@@ -17,8 +17,8 @@ import com.gb.challenge.dto.book.*;
 import com.gb.challenge.model.Book;
 import com.gb.challenge.repository.BookRepository;
 import com.gb.challenge.service.BookService;
-import com.gb.challenge.utils.RegexUtils;
-import com.gb.challenge.utils.TextCleanup;
+import com.gb.challenge.utils.RegexUtil;
+import com.gb.challenge.utils.TextCleanupUtil;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -212,10 +212,10 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
                 book.setTitle(getTitleFromImputLine(inputLine));
             }
             if (book.getLanguage() != null && !inputLine.contains("img") && !inputLine.contains("book-cover-image")) {
-                desc = desc + TextCleanup.paragraph(inputLine);
+                desc = desc + TextCleanupUtil.paragraph(inputLine);
                 book.setDescription(desc + "");
                 if (inputLine.contains("<a")) {
-                    Matcher matcher = RegexUtils.createPatternMatcher(RegexUtils.HREF, inputLine);
+                    Matcher matcher = RegexUtil.createPatternMatcher(RegexUtil.HREF, inputLine);
                     if (matcher.find() && book.getIsbn() == null) {
                         book.setIsbn(getIsbnFromInnerSite(matcher.group(1)));
                     }
@@ -245,7 +245,7 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
      * 
      */
     private String getIsbnFromInnerSite(String site) {
-        Matcher matcher = RegexUtils.createPatternMatcher(RegexUtils.SITE, site);
+        Matcher matcher = RegexUtil.createPatternMatcher(RegexUtil.SITE, site);
         if (matcher.find()) {
             switch (matcher.group()) {
             case "https://manning.com":
@@ -284,7 +284,7 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
      * 
      */
     public String getLanguageFromImputLine(String inputLine) {
-        return TextCleanup.divLang(inputLine);
+        return TextCleanupUtil.divLang(inputLine);
     }
 
     /**
@@ -297,9 +297,9 @@ public class BookServiceImpl extends GenericServiceImpl<Book, Long> implements B
      */
     public String getTitleFromImputLine(String inputLine) {
         if (inputLine.contains("<h2 style=\"clear: left\">")) {
-            return TextCleanup.h2FirstTittle(inputLine);
+            return TextCleanupUtil.h2FirstTittle(inputLine);
         } else {
-            return TextCleanup.h2SimpleTittle(inputLine);
+            return TextCleanupUtil.h2SimpleTittle(inputLine);
         }
     }
 

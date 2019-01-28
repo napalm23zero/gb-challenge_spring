@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.regex.Matcher;
 
-import com.gb.challenge.utils.RegexUtils;
+import com.gb.challenge.utils.RegexUtil;
 
 public class DumbCrawler implements Crawler {
 
@@ -22,7 +22,7 @@ public class DumbCrawler implements Crawler {
                 if (inputLine.toLowerCase().contains("isbn"))
                     isbnFound = true;
                 if (isbnFound) {
-                    Matcher matcher = RegexUtils.createPatternMatcher(RegexUtils.ISBN, inputLine);
+                    Matcher matcher = RegexUtil.createPatternMatcher(RegexUtil.ISBN, inputLine);
                     if (matcher.find()) {
                         return matcher.group(0).replace("-", "");
                     }

@@ -3,7 +3,7 @@ package com.gb.challenge.crawler;
 import java.io.IOException;
 import java.util.regex.Matcher;
 
-import com.gb.challenge.utils.RegexUtils;
+import com.gb.challenge.utils.RegexUtil;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -21,7 +21,7 @@ public final class ManningCrawler implements Crawler {
             String html = document.body().select(
                     "#top > div.container.content-body > div > div > div > div.col-sm-9.col-xs-12 > div > div.col-md-12.product-header.hidden-sm.hidden-xs > div > div.product-authorship > div")
                     .get(0).text();
-            Matcher matcher = RegexUtils.createPatternMatcher(RegexUtils.ISBN, html);
+            Matcher matcher = RegexUtil.createPatternMatcher(RegexUtil.ISBN, html);
             if (matcher.find())
                 return matcher.group();
             return "Unavailable";
