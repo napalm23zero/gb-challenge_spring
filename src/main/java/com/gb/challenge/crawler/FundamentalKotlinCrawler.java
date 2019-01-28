@@ -5,10 +5,10 @@ import java.io.IOException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-public final class FundamentalKotlinCrawler implements Crawler {
+import lombok.NoArgsConstructor;
 
-    public FundamentalKotlinCrawler() {
-    }
+@NoArgsConstructor
+public final class FundamentalKotlinCrawler implements Crawler {
 
     @Override
     public String getIsbn(String site) {
