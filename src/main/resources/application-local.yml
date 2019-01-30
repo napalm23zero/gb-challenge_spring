@@ -1,0 +1,26 @@
+
+# Spring Boot configuration
+spring:
+# Database
+  datasource:
+    initialization-mode: always
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/gb_challenge
+    username: postgres
+    password: 123456
+# JPA properties
+  jpa:
+    properties:
+      hibernate:
+        default_schema: public
+        formatSql: true
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    generate-ddl: true
+# Server configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /challenge/api

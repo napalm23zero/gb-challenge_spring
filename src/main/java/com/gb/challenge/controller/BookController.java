@@ -171,7 +171,7 @@ public class BookController {
      * @link https://kotlinlang.org/docs/books.html
      */
     @ApiOperation(value = "list kotlin")
-    @RequestMapping(value = "/list/kotlin", method = RequestMethod.GET)
+    @RequestMapping(value = "/list/kotlin", method = RequestMethod.POST)
     public BookCrawlerListDTO listKotlinPage() throws MalformedURLException, IOException {
         return (service.listKotlinPage());
     }
