@@ -40,9 +40,9 @@ http://localhost:8080/challenge/api/swagger-ui.html
 Uma inteface do Swagger será exibida para que você possa navegar entre os endpoint criados
 
 ## Sobre o Desafio
-Questão 1: Pode ser validada através do metodo POST /book em verde no Swagger
-Questão 2: Pode ser validada através do metodo GET /book/{id} em azul o Swagger
-Questão 3: Pode ser validada através do metodo POST /book/list/kotlin em verde no Swagger
+- Questão 1: Pode ser validada através do metodo POST /book em verde no Swagger
+- Questão 2: Pode ser validada através do metodo GET /book/{id} em azul o Swagger
+- Questão 3: Pode ser validada através do metodo POST /book/list/kotlin em verde no Swagger
 
 P.S.: Questão 3: As informações dos livros encontradas na página são persistidas em banco. Por isso a escolha do método POST.
 
